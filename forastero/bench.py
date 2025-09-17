@@ -73,7 +73,9 @@ class BaseBench:
     :param clk_units:       Units of the primary clock's period
     """
 
-    TEST_REQ_PARAMS: ClassVar[dict[Any, list[tuple[str, Callable[[str], Any]]]]] = defaultdict(list)
+    TEST_REQ_PARAMS: ClassVar[dict[Any, list[tuple[str, Callable[[str], Any], Any]]]] = defaultdict(
+        list
+    )
     PARAM_FILE_PATH: ClassVar[str] = os.environ.get("TEST_PARAMS", None)
     PARAM_DEFAULTS: ClassVar[dict[str, Any]] = {
         # Random seed
@@ -595,10 +597,13 @@ class BaseBench:
             # Are there any parameters for this test?
             raw_tc_params = cls.get_parameter("testcases")
             params = {}
-            for key, cast in cls.TEST_REQ_PARAMS[func]:
+            for key, cast, dec_value in cls.TEST_REQ_PARAMS[func]:
                 # First look for "<TESTCASE_NAME>.<PARAMETER_NAME>"
                 # but fall back to just "<PARAMETER_NAME>"
+                # Parameters in in json file have priorty over decorator parameters.
                 value = raw_tc_params.get(f"{base_tc_name}.{key}", raw_tc_params.get(key, None))
+                if value is None:
+                    value = dec_value
                 if value is None:
                     continue
 
@@ -640,7 +645,7 @@ class BaseBench:
         return _inner
 
     @classmethod
-    def parameter(cls, name: str, cast: Callable[[str], Any]) -> Callable:
+    def parameter(cls, name: str, cast: Callable[[str], Any], value: Any = None) -> Callable:
         """
         Decorator for defining a parameter of a testcase that can be overridden
         from a parameter file identified by the `TEST_PARAMS` environment
@@ -654,7 +659,7 @@ class BaseBench:
         """
 
         def _inner(method: Callable) -> Callable:
-            cls.TEST_REQ_PARAMS[method].append((name, cast))
+            cls.TEST_REQ_PARAMS[method].append((name, cast, value))
             return method
 
         return _inner

@@ -20,5 +20,6 @@ from ..testbench import Testbench
 
 
 @Testbench.testcase()
-async def smoke(tb: Testbench, log: Logger):
-    await ClockCycles(tb.clk, 1000)
+@Testbench.parameter("cycles", int, [100, 1000])
+async def smoke(tb: Testbench, log: Logger, cycles: int):
+    await ClockCycles(tb.clk, cycles)
