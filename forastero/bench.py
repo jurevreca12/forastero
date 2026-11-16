@@ -19,6 +19,7 @@ import itertools
 import json
 import logging
 import os
+import sys
 import random
 import traceback
 from collections import defaultdict
@@ -630,7 +631,7 @@ class BaseBench:
                 async def _imposter(dut, params=params, tc_name=tc_name):
                     await _imposter_inner(dut, params, tc_name)
 
-                _imposter.__module__ = cls.__module__.split(".")[0]
+                _imposter.__module__ = sys.modules[func.__module__]
                 _imposter.__name__ = func.__name__ + params_name
                 _imposter.__qualname__ = func.__qualname__ + params_name
                 mod = inspect.getmodule(_imposter)
