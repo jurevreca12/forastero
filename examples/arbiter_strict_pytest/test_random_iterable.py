@@ -31,13 +31,14 @@ async def test_asd(arbiter_fixture):
 async def test_bsd(arbiter_fixture):
     ...
 
-#@pytest.mark.parametrize("param123", [5000, 7000])
+
 @Testbench.testcase(fixture="arbiter_fixture")
-async def test_iter(arbiter_fixture, tb):
+@pytest.mark.parametrize("param123", [5000, 7000])
+async def test_iter(arbiter_fixture, tb, param123):
    print(type(tb))
    print(dir(tb))
    print(type(arbiter_fixture))
-   #print(param123)
+   print(param123)
 
 # pytest.mark.parametrize("packets", [1000, 2000])
 # pytest.mark.parametrize("delay", [5000, 7000])

@@ -640,6 +640,7 @@ class BaseBench:
                 async def _imposter(*args, **kwargs):
                     await _imposter_inner(*args, params=params, tc_name=tc_name, **kwargs)
 
+                _imposter.pytestmark = list(getattr(func, "pytestmark", []))
                 _imposter.__signature__ = pytest_sig
                 _imposter.__module__ = cls.__module__.split(".")[0]
                 _imposter.__name__ = func.__name__ + params_name
