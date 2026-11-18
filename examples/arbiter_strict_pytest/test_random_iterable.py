@@ -19,12 +19,12 @@ from common.io.stream import StreamBackpressure, StreamTransaction
 
 from forastero import DriverEvent
 import os
-from arbiter_strict_pytest.testbench import Testbench
+from arbiter_strict_pytest.bench import Bench
 import cocotb
 import pytest
 
 
-@Testbench.testcase(fixture="arbiter_fixture")
+@Bench.testcase(fixture="arbiter_fixture")
 @pytest.mark.parametrize("packets", [1000, 2000])
 @pytest.mark.parametrize("delay", [5000, 7000])
 async def random_iter(arbiter_fixture, tb, packets: int, delay: int): #log: Logger, packets: int = 1000, delay: int = 5000):

@@ -27,7 +27,7 @@ from forastero.io import IORole
 from forastero.monitor import MonitorEvent
 
 
-class Testbench(BaseBench):
+class Bench(BaseBench):
     """
     Testbench wrapped around the simple 2-to-1 stream arbiter.
 
