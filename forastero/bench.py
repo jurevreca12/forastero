@@ -460,6 +460,11 @@ class BaseBench:
         """
 
         def _inner(func):
+            sig = inspect.signature(func)
+            if fixture not in sig.parameters: # TODO: remove
+                raise TypeError(
+                    f"{func.__name__} must have a {fixture!r} parameter"
+                )
             async def _imposter_inner(dut, params, tc_name):
                 # Clear components registered from previous runs
                 Component.COMPONENTS.clear()
@@ -553,7 +558,7 @@ class BaseBench:
                 # Declare an intermediate function (this allows us to wrap
                 # with a optional timeout)
                 async def _inner():
-                    await func(dut, tb)
+                    await func(**{fixture: dut, "tb": tb})
                     await tb.close_down(loops=shutdown_loops, delay=shutdown_delay)
 
                 # Run with a timeout if specified
