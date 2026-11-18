@@ -23,56 +23,40 @@ from arbiter_strict_pytest.testbench import Testbench
 import cocotb
 import pytest
 
-@pytest.mark.cocotb
-async def test_asd(arbiter_fixture):
-    ...
-
-@cocotb.test
-async def test_bsd(arbiter_fixture):
-    ...
-
 
 @Testbench.testcase(fixture="arbiter_fixture")
-@pytest.mark.parametrize("param123", [5000, 7000])
-async def test_iter(arbiter_fixture, tb, param123):
-   print(type(tb))
-   print(dir(tb))
-   print(type(arbiter_fixture))
-   print(param123)
+@pytest.mark.parametrize("packets", [1000, 2000])
+@pytest.mark.parametrize("delay", [5000, 7000])
+async def random_iter(arbiter_fixture, tb, packets: int, delay: int): #log: Logger, packets: int = 1000, delay: int = 5000):
+   # Disable backpressure on input
+   tb.x_resp.enqueue(StreamBackpressure(ready=True))
 
-# pytest.mark.parametrize("packets", [1000, 2000])
-# pytest.mark.parametrize("delay", [5000, 7000])
-# @Testbench.testcase()
-# async def random_iter(arbiter_fixture, tb, packets: int, delay: int): #log: Logger, packets: int = 1000, delay: int = 5000):
-#    # Disable backpressure on input
-#    tb.x_resp.enqueue(StreamBackpressure(ready=True))
+   # Queue traffic onto interfaces A & B and interleave on the exit port
+   for _ in range(20):
+       tb.a_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
+   tb.a_init.enqueue(init_stimulus_generator(tb, packets))
+   tb.b_init.enqueue(init_stimulus_generator(tb, packets))
+   for _ in range(20):
+       tb.b_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
 
-#    # Queue traffic onto interfaces A & B and interleave on the exit port
-#    for _ in range(20):
-#        tb.a_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
-#    tb.a_init.enqueue(init_stimulus_generator(tb, packets))
-#    tb.b_init.enqueue(init_stimulus_generator(tb, packets))
-#    for _ in range(20):
-#        tb.b_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
+   # Queue up random backpressure
+   def _rand_bp(*_):
+       tb.x_resp.enqueue(
+           StreamBackpressure(
+               ready=tb.random.choice((True, False)), cycles=tb.random.randint(1, 10)
+           )
+       )
 
-#    # Queue up random backpressure
-#    def _rand_bp(*_):
-#        tb.x_resp.enqueue(
-#            StreamBackpressure(
-#                ready=tb.random.choice((True, False)), cycles=tb.random.randint(1, 10)
-#            )
-#        )
+   tb.x_resp.subscribe(DriverEvent.POST_DRIVE, _rand_bp)
+   _rand_bp()
 
-#    tb.x_resp.subscribe(DriverEvent.POST_DRIVE, _rand_bp)
-#    _rand_bp()
+   # Register a long-running coroutine
+   async def _wait():
+       await ClockCycles(tb.clk, delay)
 
-#    # Register a long-running coroutine
-#    async def _wait():
-#        await ClockCycles(tb.clk, delay)
-
-#    tb.register("wait", _wait())
+   tb.register("wait", _wait())
 
 
-# def init_stimulus_generator(tb, num_packets):
-#    for _ in range(num_packets):
-#        yield StreamTransaction(data=tb.random.getrandbits(32))
+def init_stimulus_generator(tb, num_packets):
+   for _ in range(num_packets):
+       yield StreamTransaction(data=tb.random.getrandbits(32))
