@@ -460,21 +460,9 @@ class BaseBench:
         """
 
         def _inner(func):
-            async def _imposter_inner(*args, **kwargs):
-                params = {}  # TODO: temporary
-                tc_name = '' # TODO: temporary
+            async def _imposter_inner(dut, params, tc_name):
                 # Clear components registered from previous runs
                 Component.COMPONENTS.clear()
-
-                if fixture:
-                    func_sig = inspect.signature(func)
-                    if fixture not in func_sig.parameters:
-                        raise TypeError(
-                            f"{func.__name__} must declare a parameter named {fixture!r}"
-                        )
-                    dut = args[0]
-                else:
-                    assert dut is not None, "No dut found..."
 
                 # Create a testbench instance
                 try:
@@ -641,7 +629,7 @@ class BaseBench:
                 tc_name = base_tc_name + params_name
 
                 async def _imposter(dut, params=params, tc_name=tc_name):
-                    await _imposter_inner(dut, params, tc_name)
+                    await _imposter_inner(dut=dut, params=params, tc_name=tc_name)
 
                 _imposter.__module__ = cls.__module__.split(".")[0]
                 _imposter.__name__ = func.__name__ + params_name

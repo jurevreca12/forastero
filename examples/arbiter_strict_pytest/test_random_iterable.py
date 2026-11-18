@@ -1,0 +1,78 @@
+# Copyright 2023, Peter Birch, mailto:peter@lightlogic.co.uk
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from logging import Logger
+
+from cocotb.triggers import ClockCycles
+from common.io.stream import StreamBackpressure, StreamTransaction
+
+from forastero import DriverEvent
+import os
+from arbiter_strict_pytest.testbench import Testbench
+import cocotb
+import pytest
+
+@pytest.mark.cocotb
+async def test_asd(arbiter_fixture):
+    ...
+
+@cocotb.test
+async def test_bsd(arbiter_fixture):
+    ...
+
+
+@Testbench.testcase(fixture="arbiter_fixture")
+async def test_iter(arbiter_fixture, tb):
+    print(type(tb))
+    print(dir(tb))
+    print(type(arbiter_fixture))
+
+@Testbench.parameter("packets", int)
+@Testbench.parameter("delay", int)
+@Testbench.testcase(fixture="arbiter_fixture")
+async def random_iter(arbiter_fixture, tb): #log: Logger, packets: int = 1000, delay: int = 5000):
+   packets = 1000
+   delay = 5000
+   # Disable backpressure on input
+   tb.x_resp.enqueue(StreamBackpressure(ready=True))
+
+   # Queue traffic onto interfaces A & B and interleave on the exit port
+   for _ in range(20):
+       tb.a_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
+   tb.a_init.enqueue(init_stimulus_generator(tb, packets))
+   tb.b_init.enqueue(init_stimulus_generator(tb, packets))
+   for _ in range(20):
+       tb.b_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
+
+   # Queue up random backpressure
+   def _rand_bp(*_):
+       tb.x_resp.enqueue(
+           StreamBackpressure(
+               ready=tb.random.choice((True, False)), cycles=tb.random.randint(1, 10)
+           )
+       )
+
+   tb.x_resp.subscribe(DriverEvent.POST_DRIVE, _rand_bp)
+   _rand_bp()
+
+   # Register a long-running coroutine
+   async def _wait():
+       await ClockCycles(tb.clk, delay)
+
+   tb.register("wait", _wait())
+
+
+def init_stimulus_generator(tb, num_packets):
+   for _ in range(num_packets):
+       yield StreamTransaction(data=tb.random.getrandbits(32))
