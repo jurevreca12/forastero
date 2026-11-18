@@ -460,12 +460,16 @@ class BaseBench:
         """
 
         def _inner(func):
-            sig = inspect.signature(func)
-            if fixture not in sig.parameters: # TODO: remove
-                raise TypeError(
-                    f"{func.__name__} must have a {fixture!r} parameter"
-                )
-            async def _imposter_inner(dut, params, tc_name):
+            original_sig = inspect.signature(func)
+            pytest_params = [
+                p for name, p in original_sig.parameters.items()
+                if name != "tb"
+            ]
+            pytest_sig = original_sig.replace(parameters=pytest_params)
+            async def _imposter_inner(*args, params, tc_name, **kwargs):
+                bound = pytest_sig.bind(*args, **kwargs)
+                values = bound.arguments
+                dut = values[fixture]
                 # Clear components registered from previous runs
                 Component.COMPONENTS.clear()
 
@@ -558,7 +562,7 @@ class BaseBench:
                 # Declare an intermediate function (this allows us to wrap
                 # with a optional timeout)
                 async def _inner():
-                    await func(**{fixture: dut, "tb": tb})
+                    await func(**values, tb=tb)
                     await tb.close_down(loops=shutdown_loops, delay=shutdown_delay)
 
                 # Run with a timeout if specified
@@ -633,9 +637,10 @@ class BaseBench:
                     params_name = "_" + params_name
                 tc_name = base_tc_name + params_name
 
-                async def _imposter(dut, params=params, tc_name=tc_name):
-                    await _imposter_inner(dut=dut, params=params, tc_name=tc_name)
+                async def _imposter(*args, **kwargs):
+                    await _imposter_inner(*args, params=params, tc_name=tc_name, **kwargs)
 
+                _imposter.__signature__ = pytest_sig
                 _imposter.__module__ = cls.__module__.split(".")[0]
                 _imposter.__name__ = func.__name__ + params_name
                 _imposter.__qualname__ = func.__qualname__ + params_name
