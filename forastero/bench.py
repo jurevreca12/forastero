@@ -435,6 +435,7 @@ class BaseBench:
     def testcase(
         cls,
         *args,
+        fixture=None,
         reset=True,
         timeout=10000,
         shutdown_loops=2,
@@ -459,9 +460,21 @@ class BaseBench:
         """
 
         def _inner(func):
-            async def _imposter_inner(dut, params, tc_name):
+            async def _imposter_inner(*args, **kwargs):
+                params = {}  # TODO: temporary
+                tc_name = '' # TODO: temporary
                 # Clear components registered from previous runs
                 Component.COMPONENTS.clear()
+
+                if fixture:
+                    func_sig = inspect.signature(func)
+                    if fixture not in func_sig.parameters:
+                        raise TypeError(
+                            f"{func.__name__} must declare a parameter named {fixture!r}"
+                        )
+                    dut = args[0]
+                else:
+                    assert dut is not None, "No dut found..."
 
                 # Create a testbench instance
                 try:
@@ -552,7 +565,7 @@ class BaseBench:
                 # Declare an intermediate function (this allows us to wrap
                 # with a optional timeout)
                 async def _inner():
-                    await func(tb, log, *args, **kwargs, **params)
+                    await func(args[0])
                     await tb.close_down(loops=shutdown_loops, delay=shutdown_delay)
 
                 # Run with a timeout if specified
