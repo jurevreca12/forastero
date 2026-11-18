@@ -16,9 +16,9 @@ from logging import Logger
 
 from cocotb.triggers import ClockCycles
 
-from ..testbench import Testbench
+from bench import Bench
 
 
-@Testbench.testcase()
-async def smoke(tb: Testbench, log: Logger):
+@Bench.testcase()
+async def smoke(tb: Bench): #, log: Logger):
     await ClockCycles(tb.clk, 1000)

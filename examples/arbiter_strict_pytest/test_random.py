@@ -19,22 +19,19 @@ from common.io.stream import StreamBackpressure, StreamTransaction
 
 from forastero import DriverEvent
 
-from ..testbench import Testbench
+from bench import Bench
 
 
-@Testbench.testcase()
-@Testbench.parameter("packets", int)
-@Testbench.parameter("delay", int)
-async def random_iter(tb: Testbench, log: Logger, packets: int = 1000, delay: int = 5000):
+@Bench.testcase()
+@Bench.parameter("packets", int)
+@Bench.parameter("delay", int)
+async def random(tb: Bench, packets: int = 1000, delay: int = 5000): # log: Logger,
     # Disable backpressure on input
     tb.x_resp.enqueue(StreamBackpressure(ready=True))
 
     # Queue traffic onto interfaces A & B and interleave on the exit port
-    for _ in range(20):
+    for _ in range(packets):
         tb.a_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
-    tb.a_init.enqueue(init_stimulus_generator(tb, packets))
-    tb.b_init.enqueue(init_stimulus_generator(tb, packets))
-    for _ in range(20):
         tb.b_init.enqueue(StreamTransaction(data=tb.random.getrandbits(32)))
 
     # Queue up random backpressure
@@ -53,8 +50,3 @@ async def random_iter(tb: Testbench, log: Logger, packets: int = 1000, delay: in
         await ClockCycles(tb.clk, delay)
 
     tb.register("wait", _wait())
-
-
-def init_stimulus_generator(tb, num_packets):
-    for _ in range(num_packets):
-        yield StreamTransaction(data=tb.random.getrandbits(32))

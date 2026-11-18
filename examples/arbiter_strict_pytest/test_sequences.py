@@ -25,7 +25,7 @@ from common.io.stream import (
 import forastero
 from forastero.sequence import SeqContext
 
-from ..testbench import Testbench
+from bench import Bench
 
 
 @forastero.sequence(auto_lock=True)
@@ -52,14 +52,14 @@ async def burst_on_a_only(
     await stream_a.idle()
 
 
-@Testbench.testcase(timeout=100000)
-@Testbench.parameter("single_pkts", int)
-@Testbench.parameter("burst_count", int)
-@Testbench.parameter("burst_min", int)
-@Testbench.parameter("burst_max", int)
+@Bench.testcase(timeout=100000)
+@Bench.parameter("single_pkts", int)
+@Bench.parameter("burst_count", int)
+@Bench.parameter("burst_min", int)
+@Bench.parameter("burst_max", int)
 async def random_seq(
-    tb: Testbench,
-    log: Logger,
+    tb: Bench,
+   # log: Logger,
     single_pkts: int = 2000,
     burst_count: int = 10,
     burst_min: int = 100,

@@ -18,9 +18,8 @@ from cocotb.triggers import ClockCycles
 from common.io.stream import StreamBackpressure, StreamTransaction
 
 from forastero import DriverEvent
-import os
-from arbiter_strict_pytest.bench import Bench
-import cocotb
+from bench import Bench
+
 import pytest
 
 
