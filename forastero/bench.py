@@ -565,7 +565,7 @@ class BaseBench:
                 # Declare an intermediate function (this allows us to wrap
                 # with a optional timeout)
                 async def _inner():
-                    await func(args[0])
+                    await func(dut, tb)
                     await tb.close_down(loops=shutdown_loops, delay=shutdown_delay)
 
                 # Run with a timeout if specified
