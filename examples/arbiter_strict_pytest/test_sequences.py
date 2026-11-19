@@ -58,6 +58,7 @@ async def burst_on_a_only(
 @Bench.parameter("burst_min", int)
 @Bench.parameter("burst_max", int)
 async def random_seq(
+    arbiter_fixture,
     tb: Bench,
    # log: Logger,
     single_pkts: int = 2000,

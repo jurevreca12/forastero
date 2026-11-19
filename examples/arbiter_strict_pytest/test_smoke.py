@@ -20,5 +20,5 @@ from bench import Bench
 
 
 @Bench.testcase()
-async def smoke(tb: Bench): #, log: Logger):
+async def smoke(arbiter_fixture, tb: Bench): #, log: Logger):
     await ClockCycles(tb.clk, 1000)
