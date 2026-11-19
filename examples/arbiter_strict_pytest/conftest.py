@@ -9,7 +9,7 @@ from cocotb_tools.runner import get_runner
 
 SIM = os.getenv("SIM", default="verilator")
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def arbiter_fixture(request: FixtureRequest) -> Callable[[], Any] | SimHandleBase:
     prj_dir = Path(__file__).resolve().parent
     root_dir = prj_dir.parent
@@ -22,6 +22,6 @@ def arbiter_fixture(request: FixtureRequest) -> Callable[[], Any] | SimHandleBas
     )
     return lambda: runner.test(
         hdl_toplevel="arbiter", 
-        test_module=request.module.__name__.split(".")[-1],
+        test_module=["test_random_iterable", "test_random", "test_sequences", "test_smoke"],
         test_dir=prj_dir,
     )

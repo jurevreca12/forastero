@@ -26,7 +26,7 @@ import pytest
 @Bench.testcase(fixture="arbiter_fixture")
 @pytest.mark.parametrize("packets", [1000, 2000])
 @pytest.mark.parametrize("delay", [5000, 7000])
-async def random_iter(arbiter_fixture, tb: Bench, log: Logger, packets: int, delay: int): #log: Logger, packets: int = 1000, delay: int = 5000):
+async def random_iter(arbiter_fixture, tb: Bench, log: Logger, packets: int, delay: int):
    # Disable backpressure on input
    tb.x_resp.enqueue(StreamBackpressure(ready=True))
 
