@@ -18,7 +18,7 @@ from cocotb.triggers import ClockCycles
 from common.io.stream import StreamBackpressure, StreamTransaction
 
 from forastero import DriverEvent
-from bench import Bench
+from testbench import Bench
 
 import pytest
 

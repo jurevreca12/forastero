@@ -25,7 +25,7 @@ from common.io.stream import (
 import forastero
 from forastero.sequence import SeqContext
 
-from bench import Bench
+from testbench import Bench
 
 
 @forastero.sequence(auto_lock=True)

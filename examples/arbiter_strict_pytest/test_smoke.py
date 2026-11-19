@@ -16,7 +16,7 @@ from logging import Logger
 
 from cocotb.triggers import ClockCycles
 
-from bench import Bench
+from testbench import Bench
 
 
 @Bench.testcase()
