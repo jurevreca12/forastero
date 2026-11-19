@@ -22,7 +22,7 @@ from forastero import DriverEvent
 from testbench import Bench
 
 
-@Bench.testcase()
+@Bench.testcase(fixture="arbiter_fixture")
 @Bench.parameter("packets", int)
 @Bench.parameter("delay", int)
 async def random(arbiter_fixture, tb: Bench, packets: int = 1000, delay: int = 5000): # log: Logger,

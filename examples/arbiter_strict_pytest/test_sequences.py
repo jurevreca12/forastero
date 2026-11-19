@@ -52,7 +52,7 @@ async def burst_on_a_only(
     await stream_a.idle()
 
 
-@Bench.testcase(timeout=100000)
+@Bench.testcase(timeout=100000, fixture="arbiter_fixture")
 @Bench.parameter("single_pkts", int)
 @Bench.parameter("burst_count", int)
 @Bench.parameter("burst_min", int)
@@ -76,13 +76,13 @@ async def random_seq(
     :param burst_max:   Maximum length of each burst
     """
     # Schedule single packets on upstream interfaces A & B independently
-    log.info(f"Scheduling {single_pkts} single packets on A & B")
+    #log.info(f"Scheduling {single_pkts} single packets on A & B")
     tb.schedule(stream_traffic_seq(stream=tb.a_init, length=single_pkts))
     tb.schedule(stream_traffic_seq(stream=tb.b_init, length=single_pkts))
     # Schedule isolated bursts of packets on upstream interfaces A & B
-    log.info(
-        f"Scheduling {burst_count} bursts between {burst_min} and {burst_max} " f"packets in length"
-    )
+    #log.info(
+    #    f"Scheduling {burst_count} bursts between {burst_min} and {burst_max} " f"packets in length"
+    #)
     for _ in range(burst_count):
         tb.schedule(
             burst_on_a_only(
@@ -102,5 +102,5 @@ async def random_seq(
     # NOTE: This sequence continuously generates updates to the READY signal and
     #       will never complete. We don't want it to block test completion, so
     #       it is marked as `blocking=False`
-    log.info("Scheduling downstream backpressure")
+    #log.info("Scheduling downstream backpressure")
     tb.schedule(stream_backpressure_seq(stream=tb.x_resp), blocking=False)
