@@ -463,7 +463,7 @@ class BaseBench:
             original_sig = inspect.signature(func)
             pytest_params = [
                 p for name, p in original_sig.parameters.items()
-                if name != "tb"
+                if name not in ("tb", "log")
             ]
             pytest_sig = original_sig.replace(parameters=pytest_params)
             async def _imposter_inner(*args, params, tc_name, **kwargs):
@@ -562,7 +562,7 @@ class BaseBench:
                 # Declare an intermediate function (this allows us to wrap
                 # with a optional timeout)
                 async def _inner():
-                    await func(**values, tb=tb)
+                    await func(**values, log=log, tb=tb)
                     await tb.close_down(loops=shutdown_loops, delay=shutdown_delay)
 
                 # Run with a timeout if specified

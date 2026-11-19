@@ -25,7 +25,7 @@ from testbench import Bench
 @Bench.testcase(fixture="arbiter_fixture")
 @Bench.parameter("packets", int)
 @Bench.parameter("delay", int)
-async def random(arbiter_fixture, tb: Bench, packets: int = 1000, delay: int = 5000): # log: Logger,
+async def random(arbiter_fixture, tb: Bench, log: Logger, packets: int = 1000, delay: int = 5000):
     # Disable backpressure on input
     tb.x_resp.enqueue(StreamBackpressure(ready=True))
 
